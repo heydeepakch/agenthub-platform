@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import axios from "axios";
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 
 export default function ProjectPage() {
   const { token } = useAuth();
@@ -142,8 +143,8 @@ export default function ProjectPage() {
             </div>
           ) : (
             chat.map((m, i) => (
-              <div key={i} className={`chat-message ${m.role}`}>
-                {m.content}
+                <div key={i} className={`chat-message ${m.role}`}>
+                <ReactMarkdown>{m.content}</ReactMarkdown>
               </div>
             ))
           )}

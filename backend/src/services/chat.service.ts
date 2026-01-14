@@ -1,89 +1,129 @@
 import { prisma } from "../db/prisma.js";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const perplexity = new OpenAI({
+  apiKey: process.env.PERPLEXITY_API_KEY,
+  baseURL: "https://api.perplexity.ai",
+});
+
+// Helper to ensure messages alternate (merge consecutive same-role messages)
+function ensureAlternating(
+  msgs: { role: "user" | "assistant"; content: string }[]
+): { role: "user" | "assistant"; content: string }[] {
+  if (msgs.length === 0) return [];
+
+  const result: { role: "user" | "assistant"; content: string }[] = [];
+
+  for (const msg of msgs) {
+    const last = result[result.length - 1];
+    if (last && last.role === msg.role) {
+      // Merge consecutive same-role messages
+      last.content += "\n" + msg.content;
+    } else {
+      result.push({ ...msg });
+    }
+  }
+
+  return result;
+}
 
 export async function sendMessage(projectId: string, content: string) {
-  
-   // Load project + chat history
-   const project = await prisma.project.findUnique({
+  const project = await prisma.project.findUnique({
     where: { id: projectId },
-    include: { messages: true }
   });
 
   if (!project) throw new Error("Project not found");
 
-  // Save user message
+  // Save user message first
   await prisma.message.create({
-    data: { content, role: "user", projectId }
+    data: { content, role: "user", projectId },
   });
-  
-  // Build conversation
-  const history = project.messages.map(m => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }]
+
+  // Fetch all messages in order (including the one we just saved)
+  const allMessages = await prisma.message.findMany({
+    where: { projectId },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const historyMessages = allMessages.map((m) => ({
+    role: m.role as "user" | "assistant",
+    content: m.content,
   }));
 
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  // Ensure proper alternation
+  const alternatingMessages = ensureAlternating(historyMessages);
 
-  const chat = model.startChat({
-    history,
-    systemInstruction: {
-      role: "system",
-      parts: [{ text: project.prompt }]
-    }
+  const messages = [
+    { role: "system" as const, content: project.prompt },
+    ...alternatingMessages,
+  ];
+
+  const response = await perplexity.chat.completions.create({
+    model: "sonar",
+    messages,
   });
 
-  const result = await chat.sendMessage(content);
-  const reply = result.response.text();
+  const reply = response.choices[0].message.content || "";
 
-  // Save assistant reply
   await prisma.message.create({
-    data: { content: reply, role: "assistant", projectId }
+    data: { content: reply, role: "assistant", projectId },
   });
 
   return reply;
 }
 
-export async function streamGeminiResponse(projectId: string, content: string, onChunk: (text: string) => void) {
-    // Load project + chat history
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      include: { messages: true }
-    });
-  
-    if (!project) throw new Error("Project not found");
-  
-    // Save user message
-    await prisma.message.create({
-      data: { content, role: "user", projectId }
-    });
-  
-    // Build conversation
-    const history = project.messages.map(m => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: m.content }]
-    }));
-  
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-  
-    const chat = model.startChat({
-      history,
-      systemInstruction: {
-        role: "system",
-        parts: [{ text: project.prompt }]
-      }
-    });
-  
-    const result = await chat.sendMessageStream(content);
-  
-    let fullReply = "";
-  
-    for await (const chunk of result.stream) {
-      const text = chunk.text();
+export async function streamGeminiResponse(
+  projectId: string,
+  content: string,
+  onChunk: (text: string) => void
+) {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+  });
+
+  if (!project) throw new Error("Project not found");
+
+  // Save user message first
+  await prisma.message.create({
+    data: { content, role: "user", projectId },
+  });
+
+  // Fetch all messages in order (including the one we just saved)
+  const allMessages = await prisma.message.findMany({
+    where: { projectId },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const historyMessages = allMessages.map((m) => ({
+    role: m.role as "user" | "assistant",
+    content: m.content,
+  }));
+
+  // Ensure proper alternation
+  const alternatingMessages = ensureAlternating(historyMessages);
+
+  const messages = [
+    { role: "system" as const, content: project.prompt },
+    ...alternatingMessages,
+  ];
+
+  const stream = await perplexity.chat.completions.create({
+    model: "sonar",
+    messages,
+    stream: true,
+  });
+
+  let fullReply = "";
+
+  for await (const chunk of stream) {
+    const text = chunk.choices[0]?.delta?.content || "";
+    if (text) {
       fullReply += text;
       onChunk(text);
     }
-  
-    await prisma.message.create({ data: { content: fullReply, role: "assistant", projectId } });
   }
+
+  await prisma.message.create({
+    data: { content: fullReply, role: "assistant", projectId },
+  });
+}
