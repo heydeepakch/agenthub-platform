@@ -13,12 +13,22 @@ datasource db {
   provider = "postgresql"
 }
 
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  role      String   // "user" | "assistant"
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  createdAt DateTime @default(now())
+}
+
 model Project {
   id        String   @id @default(uuid())
   name      String
   prompt    String
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+  messages  Message[]
   createdAt DateTime @default(now())
 }
 
