@@ -28,6 +28,7 @@
   "devDependencies": {
     "@prisma/adapter-pg": "^7.2.0",
     "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.0.8",
