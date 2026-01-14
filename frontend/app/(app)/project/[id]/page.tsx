@@ -30,8 +30,9 @@ export default function ProjectPage() {
       const res = await axios.get(`http://localhost:4000/api/projects/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setProject(res.data.project);
-      setChat(res.data.messages || []);
+      const { messages, ...projectData } = res.data;
+      setProject(projectData); // ✅ Gets id, name, prompt
+      setChat(messages || []);
     } catch (err) {
       console.error(err);
     }
@@ -123,7 +124,7 @@ export default function ProjectPage() {
 
       <div style={{ marginBottom: "1.5rem" }}>
         <h2 style={{ margin: 0 }}>{project?.name || "Loading..."}</h2>
-        {project?.prompt && (
+        {/* {project?.prompt && (
           <p
             className="text-muted"
             style={{ marginTop: "0.5rem", fontSize: "0.875rem" }}
@@ -131,7 +132,7 @@ export default function ProjectPage() {
             {project.prompt.slice(0, 100)}
             {project.prompt.length > 100 ? "..." : ""}
           </p>
-        )}
+        )} */}
       </div>
 
       <div className="chat-container">
@@ -143,8 +144,12 @@ export default function ProjectPage() {
             </div>
           ) : (
             chat.map((m, i) => (
-                <div key={i} className={`chat-message ${m.role}`}>
-                <ReactMarkdown>{m.content}</ReactMarkdown>
+              <div key={i} className={`chat-message ${m.role}`}>
+                {m.role === "user" ? (
+                  m.content
+                ) : (
+                  <ReactMarkdown>{m.content}</ReactMarkdown>
+                )}
               </div>
             ))
           )}
