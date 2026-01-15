@@ -5,7 +5,7 @@ export default function Home() {
     <div className="auth-container">
       <div style={{ textAlign: "center", maxWidth: "480px" }}>
         <h1 style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>
-          Chatbot Platform
+          AgentHub-Platform
         </h1>
         <p
           className="text-muted"
@@ -16,7 +16,7 @@ export default function Home() {
           }}
         >
           Create custom AI agents with your own system prompts. Build
-          conversational experiences powered by Gemini.
+          conversational experiences powered by LLM.
         </p>
         <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
           <Link href="/login">

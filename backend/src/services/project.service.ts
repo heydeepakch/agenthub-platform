@@ -7,13 +7,16 @@ export function createProject(userId: string, name: string, prompt: string) {
 }
 
 export function getProjects(userId: string) {
-  return prisma.project.findMany({ where: { userId } });
-}
+    return prisma.project.findMany({ 
+      where: { userId },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
 
 export async function getProjectWithMessages(projectId: string, userId: string) {
     return prisma.project.findFirst({
       where: { id: projectId, userId },
       include: { messages: { orderBy: { createdAt: "asc" } } }
     });
-  }
+  }   
   

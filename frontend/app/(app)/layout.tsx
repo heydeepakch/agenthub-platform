@@ -10,7 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div>
       <nav className="navbar">
         <Link href="/dashboard" className="navbar-brand">
-          Chatbot Platform
+        AgentHub-Platform
         </Link>
         <button
           className="secondary"
