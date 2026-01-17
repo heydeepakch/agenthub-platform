@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { API_URL } from "@/config/api";
 
 export default function Dashboard() {
   const { token } = useAuth();
@@ -17,7 +18,7 @@ export default function Dashboard() {
 
   const load = async () => {
     try {
-      const res = await axios.get("http://localhost:4000/api/projects", {
+      const res = await axios.get(`${API_URL}/api/projects`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProjects(res.data);
@@ -33,7 +34,7 @@ export default function Dashboard() {
     setLoading(true);
     try {
       await axios.post(
-        "http://localhost:4000/api/projects",
+        `${API_URL}/api/projects`,
         { name, prompt },
         { headers: { Authorization: `Bearer ${token}` } }
       );

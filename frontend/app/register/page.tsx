@@ -3,6 +3,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/config/api";
 
 export default function Register() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function Register() {
     setError("");
 
     try {
-      await axios.post("http://localhost:4000/api/auth/register", {
+      await axios.post(`${API_URL}/api/auth/register`, {
         email,
         password,
       });

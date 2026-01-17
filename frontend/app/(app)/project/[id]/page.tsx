@@ -6,6 +6,7 @@ import axios from "axios";
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
+import { API_URL } from "@/config/api";
 
 export default function ProjectPage() {
   const { token } = useAuth();
@@ -27,7 +28,7 @@ export default function ProjectPage() {
 
   const load = async () => {
     try {
-      const res = await axios.get(`http://localhost:4000/api/projects/${id}`, {
+      const res = await axios.get(`${API_URL}/api/projects/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const { messages, ...projectData } = res.data;
@@ -59,7 +60,7 @@ export default function ProjectPage() {
     setStreaming(true);
 
     const eventSource = new EventSource(
-      `http://localhost:4000/api/chat/stream/${id}?message=${encodeURIComponent(
+      `${API_URL}/api/chat/stream/${id}?message=${encodeURIComponent(
         userMsg
       )}&token=${token}`
     );
