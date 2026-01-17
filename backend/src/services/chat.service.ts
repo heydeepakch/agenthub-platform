@@ -27,6 +27,8 @@ function ensureAlternating(
   return result;
 }
 
+
+// non streaming response function
 export async function sendMessage(projectId: string, content: string) {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
@@ -72,7 +74,8 @@ export async function sendMessage(projectId: string, content: string) {
   return reply;
 }
 
-export async function streamGeminiResponse(
+// streaming response function
+export async function streamPerplexityResponse(
   projectId: string,
   content: string,
   onChunk: (text: string) => void

@@ -1,14 +1,17 @@
 import { sendMessage } from "../services/chat.service.js";
 import { Request, Response } from "express";
-import { streamGeminiResponse } from "../services/chat.service.js";
+import { streamPerplexityResponse } from "../services/chat.service.js";
 import jwt from "jsonwebtoken";
 
+
+// non streaming response function (currently unused)
 export async function chat(req: Request, res: Response) {
   const { projectId, message } = req.body;
   const reply = await sendMessage(projectId, message);
   res.json({ reply });
 }
 
+// streaming response function (currently used)
 export async function streamChat(req: Request, res: Response) {
   const { projectId } = req.params;
   const { message, token } = req.query;
@@ -32,7 +35,7 @@ export async function streamChat(req: Request, res: Response) {
   res.socket?.setNoDelay(true);
 
   try {
-    await streamGeminiResponse(
+    await streamPerplexityResponse(
       projectId as string,
       message as string,
       (chunk) => {

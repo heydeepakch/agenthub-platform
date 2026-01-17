@@ -31,7 +31,7 @@ export default function ProjectPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const { messages, ...projectData } = res.data;
-      setProject(projectData); // ✅ Gets id, name, prompt
+      setProject(projectData); // Gets id, name, prompt
       setChat(messages || []);
     } catch (err) {
       console.error(err);
