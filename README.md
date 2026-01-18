@@ -2,6 +2,8 @@
 
 A full-stack chatbot application that allows users to create and manage AI-powered chatbot projects agents with custom prompts.
 
+>  **[Live Demo](https://agenthub-platform-frontend.vercel.app/)** 
+
 ## Overview
 
 This application consists of a React/Next.js frontend and an Express backend with PostgreSQL database. Users can register, create multiple chatbot agent projects with custom system prompts, and have conversations with AI assistants powered by Perplexity AI.
